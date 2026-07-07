@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi historia — de Torino a Madrid</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Work+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F1EEE5;
+    --panel:#E7E1D0;
+    --ink:#20241F;
+    --ink-soft:#4b5148;
+    --emerald:#1F5C4F;
+    --bronze:#8A6C42;
+    --line-soft:rgba(32,36,31,0.14);
+    --white:#FBFAF6;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Work Sans', sans-serif;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  nav.tabs{
+    position:sticky; top:0; z-index:50;
+    background:rgba(241,238,229,0.92);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line-soft);
+    display:flex; justify-content:center; gap:0;
+    padding:0 1rem;
+  }
+  nav.tabs button{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.78rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    background:none; border:none; cursor:pointer;
+    color:var(--ink-soft);
+    padding:1.1rem 1.4rem;
+    border-bottom:2px solid transparent;
+    transition:color 0.2s ease, border-color 0.2s ease;
+  }
+  nav.tabs button.active{
+    color:var(--emerald);
+    border-bottom-color:var(--emerald);
+  }
+  nav.tabs button:hover{color:var(--emerald);}
+
+  .view{display:none;}
+  .view.active{display:block;}
+
+  .cover{
+    max-width:640px;
+    margin:0 auto;
+    padding:5.5rem 1.5rem 2rem;
+    text-align:left;
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.72rem;
+    letter-spacing:0.28em;
+    text-transform:uppercase;
+    color:var(--bronze);
+    display:block;
+    margin-bottom:1.3rem;
+  }
+  .cover h1{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-size:clamp(2rem, 5.2vw, 3.1rem);
+    line-height:1.15;
+    margin:0 0 1.2rem;
+  }
+  .cover h1 em{font-style:italic; font-weight:300; color:var(--emerald);}
+  .cover p{
+    max-width:50ch;
+    color:var(--ink-soft);
+    font-size:1.03rem;
+    margin:0;
+  }
+
+  .route-wrap{
+    max-width:720px;
+    margin:0 auto;
+    padding:1rem 1.5rem 5rem;
+    position:relative;
+  }
+  .route-svg{width:100%; height:auto; display:block; overflow:visible;}
+  .route-path{
+    fill:none;
+    stroke:var(--emerald);
+    stroke-width:2;
+    stroke-linecap:round;
+    stroke-dasharray:6 10;
+  }
+  .route-path.drawn{
+    stroke-dasharray:2200;
+    stroke-dashoffset:2200;
+    transition:stroke-dashoffset 2.4s cubic-bezier(.2,.7,.2,1);
+  }
+  .route-path.drawn.visible{stroke-dashoffset:0;}
+
+  .node{
+    position:absolute;
+    display:flex;
+    align-items:flex-start;
+    gap:0.8rem;
+    opacity:0;
+    transform:translateY(14px);
+    transition:opacity 0.7s ease, transform 0.7s ease;
+  }
+  .node.visible{opacity:1; transform:translateY(0);}
+  .node .dot{
+    flex:0 0 auto;
+    width:14px;height:14px;
+    border-radius:50%;
+    background:var(--emerald);
+    border:3px solid var(--bg);
+    box-shadow:0 0 0 1px var(--emerald);
+    margin-top:0.35rem;
+  }
+  .node .label{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.68rem;
+    letter-spacing:0.1em;
+    color:var(--bronze);
+    text-transform:uppercase;
+    margin-bottom:0.2rem;
+  }
+  .node .role{
+    font-family:'Fraunces', serif;
+    font-size:1.05rem;
+    font-weight:500;
+    margin:0 0 0.1rem;
+  }
+  .node .meta{
+    font-size:0.85rem;
+    color:var(--ink-soft);
+    margin:0;
+  }
+  .node.left{left:0; text-align:left; max-width:230px;}
+  .node.right{right:0; text-align:left; max-width:230px; flex-direction:row;}
+
+  .cta-row{text-align:center; margin-top:1rem;}
+  .cta{
+    display:inline-flex;
+    align-items:center;
+    gap:0.5rem;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.82rem;
+    color:var(--white);
+    background:var(--emerald);
+    padding:0.85rem 1.5rem;
+    border-radius:999px;
+    text-decoration:none;
+    letter-spacing:0.03em;
+    border:none; cursor:pointer;
+    transition:transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .cta:hover{transform:translateY(-2px); box-shadow:0 12px 26px -12px rgba(31,92,79,0.45);}
+
+  .detail-header{
+    max-width:720px;
+    margin:0 auto;
+    padding:3.5rem 1.5rem 1rem;
+  }
+  .detail-header h2{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-size:1.9rem;
+    margin:0 0 0.6rem;
+  }
+  .detail-header p{color:var(--ink-soft); max-width:52ch; margin:0;}
+
+  .stage{
+    max-width:720px;
+    margin:0 auto;
+    padding:2.4rem 1.5rem;
+    display:grid;
+    grid-template-columns:220px 1fr;
+    gap:2rem;
+    border-top:1px solid var(--line-soft);
+    opacity:0;
+    transform:translateY(20px);
+    transition:opacity 0.7s ease, transform 0.7s ease;
+  }
+  .stage.visible{opacity:1; transform:translateY(0);}
+  .stage:last-child{border-bottom:1px solid var(--line-soft);}
+
+  .stage .photo{
+    width:100%;
+    aspect-ratio:4/5;
+    border-radius:14px;
+    background:linear-gradient(160deg, var(--panel), #d9d2ba);
+    background-size:cover;
+    background-position:center;
+    box-shadow:0 16px 30px -18px rgba(32,36,31,0.35);
+  }
+
+  .stage .content .label{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.7rem;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--bronze);
+    margin-bottom:0.4rem;
+  }
+  .stage .content h3{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-size:1.5rem;
+    margin:0 0 0.15rem;
+  }
+  .stage .content .company{
+    color:var(--emerald);
+    font-weight:500;
+    margin:0 0 0.15rem;
+  }
+  .stage .content .date{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.78rem;
+    color:var(--ink-soft);
+    margin:0 0 1rem;
+  }
+  .stage .content p.story{
+    margin:0;
+    color:var(--ink-soft);
+    font-size:0.98rem;
+    max-width:56ch;
+  }
+
+  @media (max-width:760px){
+    .route-wrap{padding-bottom:3rem;}
+    .node.left, .node.right{
+      position:static;
+      max-width:none;
+      margin-bottom:2.2rem;
+    }
+    .route-svg{display:none;}
+    .stage{grid-template-columns:1fr; gap:1.2rem;}
+    .stage .photo{aspect-ratio:16/9;}
+  }
+
+  .closing{
+    max-width:720px;
+    margin:0 auto;
+    padding:1rem 1.5rem 6rem;
+  }
+  .closing .note{
+    margin-top:2.5rem;
+    padding-top:1.5rem;
+    border-top:1px solid var(--line-soft);
+    font-size:0.78rem;
+    color:var(--ink-soft);
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important; scroll-behavior:auto !important;}
+    .node, .stage, .route-path.drawn{opacity:1; transform:none; stroke-dashoffset:0 !important;}
+  }
+</style>
+</head>
+<body>
+
+<nav class="tabs">
+  <button id="tab-home" class="active" onclick="showView('home')">Resumen</button>
+  <button id="tab-detail" onclick="showView('detail')">Mi historia completa</button>
+</nav>
+
+<section id="view-home" class="view active">
+
+  <div class="cover">
+    <span class="eyebrow">Ruta profesional · 2023 — 2026</span>
+    <h1>Esta no es mi CV.<br><em>Es cómo llegué hasta aquí, de verdad.</em></h1>
+    <p>Tres ciudades, dos países, y bastantes decisiones que nunca caben en un perfil de LinkedIn. Este es el resumen del camino — la versión completa está en la otra pestaña.</p>
+  </div>
+
+  <div class="route-wrap">
+    <svg class="route-svg" viewBox="0 0 400 1500" preserveAspectRatio="xMidYMin meet">
+      <path id="routePath" class="route-path drawn"
+        d="M90,90 C280,140 300,300 110,380 C-40,450 -20,600 150,660 C300,710 320,860 100,940 C-30,1000 -10,1150 160,1220 C300,1270 320,1400 130,1440" />
+    </svg>
+
+    <div class="node left" style="top:70px;">
+      <span class="dot"></span>
+      <div>
+        <div class="label">01 · TRN · Mayo 2023</div>
+        <p class="role">Becario</p>
+        <p class="meta">PwC Torino</p>
+      </div>
+    </div>
+
+    <div class="node right" style="top:640px;">
+      <span class="dot"></span>
+      <div>
+        <div class="label">02 · TRN · Nov 2023 — Mar 2025</div>
+        <p class="role">Associate</p>
+        <p class="meta">PwC Torino</p>
+      </div>
+    </div>
+
+    <div class="node left" style="top:920px;">
+      <span class="dot"></span>
+      <div>
+        <div class="label">03 · MIL · Abril 2025</div>
+        <p class="role">Senior Consultant</p>
+        <p class="meta">PwC Milano</p>
+      </div>
+    </div>
+
+    <div class="node right" style="top:1200px;">
+      <span class="dot"></span>
+      <div>
+        <div class="label">04 · MAD · Abril 2026</div>
+        <p class="role">Senior Consultant, S&amp;O Banking</p>
+        <p class="meta">Deloitte Madrid</p>
+      </div>
+    </div>
+
+    <div class="cta-row" style="margin-top:1.5rem;">
+      <button class="cta" onclick="showView('detail')">Ver mi historia completa →</button>
+    </div>
+  </div>
+</section>
+
+<section id="view-detail" class="view">
+
+  <div class="detail-header">
+    <h2>La historia completa</h2>
+    <p>Cada etapa tal como la viví — con lo que aprendí, lo que dudé, y por qué tomé cada decisión.</p>
+  </div>
+
+  <article class="stage" data-reveal>
+    <div class="photo" style="background-image:url('images/01-becario-torino.jpg');"></div>
+    <div class="content">
+      <div class="label">01 · Torino, Italia · Mayo 2023</div>
+      <h3>Becario</h3>
+      <p class="company">PwC Torino</p>
+      <p class="date">Mayo 2023</p>
+      <p class="story">Entré sin saber muy bien qué esperar del mundo de la consultoría — solo con curiosidad y ganas de aprender rápido. Los primeros meses fueron de absorber todo: cómo se estructura un proyecto, cómo habla un cliente, cómo se construye una propuesta desde cero. Fue ahí donde descubrí que me gustaba el ritmo de este trabajo: la mezcla de análisis, presión y aprendizaje constante. Ese verano decidí que quería quedarme.</p>
+    </div>
+  </article>
+
+  <article class="stage" data-reveal>
+    <div class="photo" style="background-image:url('images/02-associate-torino.jpg');"></div>
+    <div class="content">
+      <div class="label">02 · Torino, Italia · Nov 2023 — Mar 2025</div>
+      <h3>Associate</h3>
+      <p class="company">PwC Torino</p>
+      <p class="date">Noviembre 2023 — Marzo 2025</p>
+      <p class="story">Aquí empezó el aprendizaje de verdad. Pasé de observar a ejecutar: primeros deliverables propios, primeras reuniones con clientes sin red de seguridad, primeras noches largas cerrando una propuesta. Hubo momentos de duda — la típica sensación de no estar a la altura — pero también la satisfacción de ver un proyecto avanzar gracias a algo que construí yo. Estos casi año y medio me dieron las bases que uso todavía hoy.</p>
+    </div>
+  </article>
+
+  <article class="stage" data-reveal>
+    <div class="photo" style="background-image:url('images/03-senior-milano.jpg');"></div>
+    <div class="content">
+      <div class="label">03 · Milano, Italia · Abril 2025</div>
+      <h3>Senior Consultant</h3>
+      <p class="company">PwC Milano</p>
+      <p class="date">Abril 2025</p>
+      <p class="story">La promoción llegó junto con una pregunta más grande: ¿me quedo en lo conocido o me muevo? Elegí moverme. Dejar Torino no fue solo un cambio de oficina, fue salir de una zona cómoda que me había costado construir. En Milano encontré clientes más grandes, un equipo distinto, y la confirmación de que podía adaptarme rápido cuando hacía falta.</p>
+    </div>
+  </article>
+
+  <article class="stage" data-reveal>
+    <div class="photo" style="background-image:url('images/04-deloitte-madrid.jpg');"></div>
+    <div class="content">
+      <div class="label">04 · Madrid, España · Abril 2026</div>
+      <h3>Senior Consultant, Strategy &amp; Operations Banking</h3>
+      <p class="company">Deloitte Madrid</p>
+      <p class="date">Abril 2026</p>
+      <p class="story">Este salto fue el más grande de todos: nuevo país, nuevo idioma, nueva firma. Cambiar Italia por España significó empezar otra vez a construir red, confianza y contexto — esta vez en español. Hoy trabajo en transformación bancaria, con proyectos que exigen entender tanto la tecnología como el negocio. Este capítulo todavía se está escribiendo.</p>
+    </div>
+  </article>
+
+  <div class="closing">
+    <p class="note">Nota para ti: reemplaza las imágenes en la carpeta <strong>images/</strong> con tus fotos reales (mismos nombres de archivo), y añade tu nombre y tu link de LinkedIn donde corresponda antes de publicar. Cada vez que tengas un hito nuevo, dímelo y lo añadimos juntos, en el resumen y en la historia completa.</p>
+  </div>
+</section>
+
+<script>
+  function showView(name){
+    document.getElementById('view-home').classList.toggle('active', name==='home');
+    document.getElementById('view-detail').classList.toggle('active', name==='detail');
+    document.getElementById('tab-home').classList.toggle('active', name==='home');
+    document.getElementById('tab-detail').classList.toggle('active', name==='detail');
+    window.scrollTo({top:0, behavior:'instant'});
+  }
+
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        e.target.classList.add('visible');
+        io.unobserve(e.target);
+      }
+    });
+  }, {threshold:0.15});
+
+  document.querySelectorAll('.node, [data-reveal]').forEach(el=>io.observe(el));
+  const path = document.getElementById('routePath');
+  if(path) io.observe(path);
+</script>
+
+</body>
+</html>
